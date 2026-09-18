@@ -1,0 +1,309 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "diy-llm 作业 1：从文本到可训练模型",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1080,
+      590
+    ],
+    "views": [
+      {
+        "id": "tokenizer-path",
+        "label": "Tokenizer 路径",
+        "focus": [
+          "text",
+          "unicode",
+          "bpe",
+          "tokens"
+        ],
+        "note": "先弄清文本如何经过 Unicode 规范化、BPE 训练和编码。"
+      },
+      {
+        "id": "model-path",
+        "label": "Model 路径",
+        "focus": [
+          "tokens",
+          "embedding",
+          "transformer",
+          "logits"
+        ],
+        "note": "把 token id 变成模型输入，再得到 logits。"
+      },
+      {
+        "id": "training-contract",
+        "label": "训练契约",
+        "focus": [
+          "logits",
+          "targets",
+          "loss",
+          "optimizer"
+        ],
+        "note": "最后确认 logits、targets、loss 和 optimizer 的 shape 与职责。"
+      }
+    ]
+  },
+  "stages": [
+    {
+      "label": "原始文本"
+    },
+    {
+      "label": "Tokenizer"
+    },
+    {
+      "label": "Model"
+    },
+    {
+      "label": "训练"
+    },
+    {
+      "label": "作业证据"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "text",
+      "type": "external",
+      "label": "Text Corpus",
+      "sublabel": "Unicode 字符串",
+      "stage": 0,
+      "row": 1,
+      "tag": "输入"
+    },
+    {
+      "id": "unicode",
+      "type": "backend",
+      "label": "Unicode Normalize",
+      "sublabel": "规范化与边界",
+      "stage": 1,
+      "row": 0,
+      "tag": "预处理"
+    },
+    {
+      "id": "bpe",
+      "type": "backend",
+      "label": "BPE Trainer",
+      "sublabel": "merge rules",
+      "stage": 1,
+      "row": 1,
+      "tag": "作业 1"
+    },
+    {
+      "id": "tokens",
+      "type": "database",
+      "label": "Token IDs",
+      "sublabel": "encode / decode",
+      "stage": 1,
+      "row": 3,
+      "tag": "中间表示",
+      "yOffset": -15
+    },
+    {
+      "id": "embedding",
+      "type": "backend",
+      "label": "Embedding",
+      "sublabel": "token → vector",
+      "stage": 2,
+      "row": 0,
+      "tag": "输入层"
+    },
+    {
+      "id": "transformer",
+      "type": "backend",
+      "label": "Transformer",
+      "sublabel": "attention + MLP",
+      "stage": 2,
+      "row": 1,
+      "tag": "模型"
+    },
+    {
+      "id": "logits",
+      "type": "cloud",
+      "label": "Logits",
+      "sublabel": "next-token scores",
+      "stage": 2,
+      "row": 3,
+      "tag": "输出",
+      "yOffset": -15
+    },
+    {
+      "id": "targets",
+      "type": "external",
+      "label": "Targets",
+      "sublabel": "shifted token ids",
+      "stage": 3,
+      "row": 0,
+      "tag": "监督"
+    },
+    {
+      "id": "loss",
+      "type": "security",
+      "label": "Cross-Entropy",
+      "sublabel": "logits vs targets",
+      "stage": 3,
+      "row": 1,
+      "tag": "目标函数"
+    },
+    {
+      "id": "optimizer",
+      "type": "backend",
+      "label": "Optimizer",
+      "sublabel": "backward + update",
+      "stage": 3,
+      "row": 3,
+      "tag": "更新",
+      "yOffset": -15
+    },
+    {
+      "id": "assignment",
+      "type": "database",
+      "label": "Assignment 1",
+      "sublabel": "实现 · 测试 · 解释",
+      "stage": 4,
+      "row": 1,
+      "tag": "证据"
+    }
+  ],
+  "flows": [
+    {
+      "id": "text-unicode",
+      "from": "text",
+      "to": "unicode",
+      "label": "raw text",
+      "classification": "input",
+      "variant": "emphasis"
+    },
+    {
+      "id": "unicode-bpe",
+      "from": "unicode",
+      "to": "bpe",
+      "label": "normalized text",
+      "classification": "preprocess",
+      "variant": "default",
+      "labelAt": [
+        315,
+        200
+      ]
+    },
+    {
+      "id": "bpe-tokens",
+      "from": "bpe",
+      "to": "tokens",
+      "label": "merge + vocab",
+      "classification": "tokenizer",
+      "variant": "emphasis",
+      "labelAt": [
+        315,
+        385
+      ]
+    },
+    {
+      "id": "tokens-embedding",
+      "from": "tokens",
+      "to": "embedding",
+      "label": "input ids",
+      "classification": "tensor",
+      "variant": "default"
+    },
+    {
+      "id": "embedding-transformer",
+      "from": "embedding",
+      "to": "transformer",
+      "label": "hidden states",
+      "classification": "tensor",
+      "variant": "default",
+      "labelAt": [
+        530,
+        200
+      ]
+    },
+    {
+      "id": "transformer-logits",
+      "from": "transformer",
+      "to": "logits",
+      "label": "forward",
+      "classification": "tensor",
+      "variant": "emphasis",
+      "labelAt": [
+        530,
+        385
+      ]
+    },
+    {
+      "id": "logits-loss",
+      "from": "logits",
+      "to": "loss",
+      "label": "prediction",
+      "classification": "objective",
+      "variant": "emphasis",
+      "labelDy": -36
+    },
+    {
+      "id": "targets-loss",
+      "from": "targets",
+      "to": "loss",
+      "label": "ground truth",
+      "classification": "objective",
+      "variant": "dashed",
+      "labelAt": [
+        745,
+        200
+      ]
+    },
+    {
+      "id": "loss-optimizer",
+      "from": "loss",
+      "to": "optimizer",
+      "label": "backward",
+      "classification": "gradient",
+      "variant": "emphasis",
+      "labelAt": [
+        745,
+        385
+      ]
+    },
+    {
+      "id": "loss-assignment",
+      "from": "loss",
+      "to": "assignment",
+      "label": "shape / value checks",
+      "classification": "evidence",
+      "variant": "dashed",
+      "labelAt": [
+        853,
+        330
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "建议学习顺序",
+      "items": [
+        "先完成第 2 章 tokenizer，再接第 3 章资源核算",
+        "第 4 章只抓住 RoPE、RMSNorm、SwiGLU、AdamW 和训练细节",
+        "每一步都记录输入、输出 shape 与可运行测试"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "作业 1 的验收",
+      "items": [
+        "tokenizer 能训练、编码、解码并解释边界",
+        "model 能从 token ids 得到 logits",
+        "optimizer 更新前后能说明参数和 loss 的变化"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "范围边界",
+      "items": [
+        "MoE、Scaling、对齐和完整六次作业不是当前首次求职硬指标",
+        "遇到问题优先回到数据、shape、loss 和资源核算",
+        "不要用跑通脚本替代理解实现"
+      ]
+    }
+  ]
+}
